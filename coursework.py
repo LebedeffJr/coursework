@@ -71,9 +71,9 @@ class YaDiskUpload:
         return response
 
 if __name__ == "__main__":
-    vk_token = 'The VK-token was here'
+    vk_token = 'The VK-token was here!'
     vk_client = VK(vk_token, '5.131')
-    ya_token = 'The Yandex-token was here'
+    ya_token = 'The Yandex-token was here!'
     ya_client = YaDiskUpload(ya_token)
     dict_photos = dict(vk_client.get_prof_photo_url())
     print(dict_photos)
