@@ -20,6 +20,7 @@ class VK:
         }
         req = requests.get(url_g_p, params={**self.params, **get_photo_params}).json()
         url_msp_list = []
+        name_list = []
         i = 0
         for info in req['response']['items']:
             for photos in info['sizes']:
@@ -27,7 +28,7 @@ class VK:
                     url_msp_list.append(photos['url'])
                     i += 1
         i = 0
-        name_list = []
+
         for name in req['response']['items']:
             if name['likes']['count'] not in name_list and i < 6:
                 name_list.append(str(name['likes']['count']))
