@@ -1,7 +1,7 @@
 import requests
 from datetime import datetime
 from tqdm import tqdm
-
+import json
 
 class VK:
     URL = 'https://api.vk.com/method/'
@@ -21,22 +21,26 @@ class VK:
         req = requests.get(url_g_p, params={**self.params, **get_photo_params}).json()
         url_msp_list = []
         name_list = []
+        count = int(input('Введите количество фотографий: '))
+        info_list = []
         i = 0
         for info in req['response']['items']:
-            for photos in info['sizes']:
-                if photos['type'] == 'w' and i < 6:
-                    url_msp_list.append(photos['url'])
-                    i += 1
-        i = 0
-
-        for name in req['response']['items']:
-            if name['likes']['count'] not in name_list and i < 6:
-                name_list.append(str(name['likes']['count']))
+            info_list.append(info)
+            if req['response']['count'] < count:
+                print('Нет столько фотографий')
+                break
+            elif i < count:
+                url_msp_list.append(info['sizes'][-1]['url'])
+            if str(info['likes']['count']) not in name_list and i < count:
+                name_list.append(str(info['likes']['count']))
                 i += 1
-            elif name['likes']['count'] in name_list and i < 6:
-                name_list.append(datetime.fromtimestamp(name['date']).strftime('%Y/%m/%d'))
+            elif info['likes']['count'] not in name_list and i < count:
+                name_list.append(datetime.fromtimestamp(info['date']).strftime('%Y|%m|%d'))
                 i += 1
             else:
+                with open('info.json', 'w') as file:
+                    file.write(json.dumps(info_list, indent=4, ensure_ascii=False))
+
                 break
         name_url = zip(name_list, url_msp_list)
         return name_url
@@ -69,12 +73,19 @@ class YaDiskUpload:
         upload_url = response.json()['href']
         response = requests.put(upload_url, headers=self.headers, data=file_data)
         response.raise_for_status()
+        status_info = {
+            file_name : 'upload_success' if response.status_code == 201 else 'error'
+        }
+        data = json.load(open('info.json'))
+        data.append(status_info)
+        with open('info.json', 'w') as f:
+            json.dump(data, f, indent=4)
         return response
 
 if __name__ == "__main__":
-    vk_token = 'The VK-token was here!'
+    vk_token = input('Введите ваш VK токен: ')
     vk_client = VK(vk_token, '5.131')
-    ya_token = 'The Yandex-token was here!'
+    ya_token = input('Введите свой Яндекс Токен: ')
     ya_client = YaDiskUpload(ya_token)
     dict_photos = dict(vk_client.get_prof_photo_url())
     print(dict_photos)
